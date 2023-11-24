@@ -2,6 +2,7 @@ from django.db import models
 from django_jalali.db import models as jmodels
 from django.contrib.auth.models import AbstractUser
 from .validators import limit_file_size
+from .utils import generate_new_verify_code
 
 
 
@@ -88,4 +89,37 @@ class User(AbstractUser):
  
     
 
+class VerifyCode(models.Model):
+    SUBJECT_CHOICES = [
+        ("phone", "تلفن همراه"),
+        ("email", "ایمیل"),
+        ("login", "ورود به سایت"),
+    ]
+
+    STATUS_CHOICES =[
+        (0, "نامعتبر"),
+        (1, "معتبر"),
+        (2, "اعمال شده"),
+    ]
+
+    subject = models.CharField(max_length=20, choices=SUBJECT_CHOICES, verbose_name="نوع کد تایید")
+    code = models.CharField(max_length=10, blank=True, editable=False, unique=True,
+           default=generate_new_verify_code, verbose_name="کد تایید")
+    status = models.PositiveSmallIntegerField(default=1, choices=STATUS_CHOICES, verbose_name="وضعیت کد")
+    attempts =  models.PositiveSmallIntegerField(default=0, verbose_name="تعداد تلاش")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر")
+
+    class Meta:
+        verbose_name = 'کد تایید'
+        verbose_name_plural = 'کدهای تایید'
     
+    def __str__(self):
+        return f"{self.subject} - {self.code}"
+    
+    @property
+    def get_status(self):
+        return dict(self.STATUS_CHOICES)[self.status]
+    
+    @property
+    def get_subject(self):
+        return dict(self.SUBJECT_CHOICES)[self.subject]
