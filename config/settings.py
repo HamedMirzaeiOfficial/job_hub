@@ -42,7 +42,7 @@ DEFAULT_APPS = [
 ]
 
 LOCAL_APPS = [
- 
+    'accounts.apps.AccountsConfig', 
 ]
 
 
